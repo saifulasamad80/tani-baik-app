@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KebunRouteImport } from './routes/kebun'
+import { Route as LaporanRouteImport } from './routes/laporan'
 import { Route as PeternakanRouteImport } from './routes/peternakan'
 import { Route as PosRouteImport } from './routes/pos'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const KebunRoute = KebunRouteImport.update({
   id: '/kebun',
   path: '/kebun',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LaporanRoute = LaporanRouteImport.update({
+  id: '/laporan',
+  path: '/laporan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PeternakanRoute = PeternakanRouteImport.update({
@@ -38,12 +44,14 @@ const PosRoute = PosRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/kebun': typeof KebunRoute
+  '/laporan': typeof LaporanRoute
   '/peternakan': typeof PeternakanRoute
   '/pos': typeof PosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/kebun': typeof KebunRoute
+  '/laporan': typeof LaporanRoute
   '/peternakan': typeof PeternakanRoute
   '/pos': typeof PosRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/kebun': typeof KebunRoute
+  '/laporan': typeof LaporanRoute
   '/peternakan': typeof PeternakanRoute
   '/pos': typeof PosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/kebun' | '/peternakan' | '/pos'
+  fullPaths: '/' | '/kebun' | '/laporan' | '/peternakan' | '/pos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/kebun' | '/peternakan' | '/pos'
-  id: '__root__' | '/' | '/kebun' | '/peternakan' | '/pos'
+  to: '/' | '/kebun' | '/laporan' | '/peternakan' | '/pos'
+  id: '__root__' | '/' | '/kebun' | '/laporan' | '/peternakan' | '/pos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   KebunRoute: typeof KebunRoute
+  LaporanRoute: typeof LaporanRoute
   PeternakanRoute: typeof PeternakanRoute
   PosRoute: typeof PosRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/kebun'
       fullPath: '/kebun'
       preLoaderRoute: typeof KebunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/laporan': {
+      id: '/laporan'
+      path: '/laporan'
+      fullPath: '/laporan'
+      preLoaderRoute: typeof LaporanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/peternakan': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   KebunRoute: KebunRoute,
+  LaporanRoute: LaporanRoute,
   PeternakanRoute: PeternakanRoute,
   PosRoute: PosRoute,
 }
