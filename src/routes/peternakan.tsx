@@ -39,7 +39,7 @@ export const Route = createFileRoute("/peternakan")({
 });
 
 function PeternakanPage() {
-  const [pakan, setPakan] = useState(stokPakan[0].nama);
+  const [pakan, setPakan] = useState(stokPakan[0]!.nama);
   const [jumlah, setJumlah] = useState("");
   const [supplier, setSupplier] = useState("CV Sumber Ternak");
   const [catatan, setCatatan] = useState("");

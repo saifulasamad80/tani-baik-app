@@ -51,7 +51,7 @@ const marginData = marginBulanan.map((m) => ({
 }));
 
 function Dashboard() {
-  const bulanIni = marginBulanan[marginBulanan.length - 1];
+  const bulanIni = marginBulanan[marginBulanan.length - 1]!;
   const laba = bulanIni.pendapatan - bulanIni.biaya;
   const margin = ((laba / bulanIni.pendapatan) * 100).toFixed(1);
   const totalPanenKg = panenBulanan.reduce(

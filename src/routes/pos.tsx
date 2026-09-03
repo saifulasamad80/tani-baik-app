@@ -66,7 +66,7 @@ function PosPage() {
   const subtotal = keranjang.reduce((a, b) => a + b.harga * b.qty, 0);
   const transaksiHariIni = keranjang.length > 0 ? 1 : 0;
   const terlaris = keranjang.length
-    ? [...keranjang].sort((a, b) => b.qty - a.qty)[0].nama
+    ? [...keranjang].sort((a, b) => b.qty - a.qty)[0]!.nama
     : "-";
 
   const tambah = (sku: string) => {
@@ -74,7 +74,7 @@ function PosPage() {
     setKeranjang((k) => {
       const ada = k.find((i) => i.sku === sku);
       if (ada) return k.map((i) => (i.sku === sku ? { ...i, qty: i.qty + 1 } : i));
-      return [...k, { sku, nama: p.nama, harga: p.harga, qty: 1 }];
+      return [...k, { sku, nama: p.nama, harga: p.harga, qty: 1 }] as Item[];
     });
   };
   const kurang = (sku: string) =>
@@ -83,7 +83,10 @@ function PosPage() {
     );
 
   const bayar = () => {
-    if (!keranjang.length) return toast.error("Keranjang masih kosong.");
+    if (!keranjang.length) {
+      toast.error("Keranjang masih kosong.");
+      return;
+    }
     toast.success(`Transaksi ${rupiah(subtotal)} berhasil. Struk dicetak.`);
     setKeranjang([]);
   };
