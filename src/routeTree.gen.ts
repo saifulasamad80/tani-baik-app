@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KebunRouteImport } from './routes/kebun'
+import { Route as PeternakanRouteImport } from './routes/peternakan'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const KebunRoute = KebunRouteImport.update({
   path: '/kebun',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PeternakanRoute = PeternakanRouteImport.update({
+  id: '/peternakan',
+  path: '/peternakan',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/kebun': typeof KebunRoute
+  '/peternakan': typeof PeternakanRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/kebun': typeof KebunRoute
+  '/peternakan': typeof PeternakanRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/kebun': typeof KebunRoute
+  '/peternakan': typeof PeternakanRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/kebun'
+  fullPaths: '/' | '/kebun' | '/peternakan'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/kebun'
-  id: '__root__' | '/' | '/kebun'
+  to: '/' | '/kebun' | '/peternakan'
+  id: '__root__' | '/' | '/kebun' | '/peternakan'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   KebunRoute: typeof KebunRoute
+  PeternakanRoute: typeof PeternakanRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KebunRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/peternakan': {
+      id: '/peternakan'
+      path: '/peternakan'
+      fullPath: '/peternakan'
+      preLoaderRoute: typeof PeternakanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   KebunRoute: KebunRoute,
+  PeternakanRoute: PeternakanRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
