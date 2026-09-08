@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMemo } from "react";
 import {
   Bar,
   BarChart,
@@ -15,23 +16,26 @@ import {
 import { ArrowDownRight, ArrowUpRight, Percent, Wallet } from "lucide-react";
 
 import { PageHeader, StatCard } from "@/components/page-header";
+import { BRAND_NAME } from "@/lib/brand";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { bebanOperasional, marginBulanan, pendapatanUnit, rupiah } from "@/lib/dummy-data";
+import { useKasHarianRows } from "@/hooks/use-workbook-rows";
+import { rupiah } from "@/lib/farm-data";
+import { ringkasKasHarian } from "@/lib/workbook-rows";
 
 export const Route = createFileRoute("/laporan")({
   head: () => ({
     meta: [
-      { title: "Laporan Keuangan — Tani Baik" },
+      { title: `Laporan Keuangan — ${BRAND_NAME}` },
       {
         name: "description",
         content:
           "Kalkulasi harga jual, biaya operasional, dan profit unit kebun, peternakan, serta toko UMKM.",
       },
-      { property: "og:title", content: "Laporan Keuangan — Tani Baik" },
+      { property: "og:title", content: `Laporan Keuangan — ${BRAND_NAME}` },
       {
         property: "og:description",
-        content: "Laba rugi bulanan Tani Baik: pendapatan vs biaya operasional.",
+        content: `Laba rugi bulanan ${BRAND_NAME}: pendapatan vs biaya operasional.`,
       },
     ],
   }),
@@ -41,17 +45,13 @@ export const Route = createFileRoute("/laporan")({
 const warna = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)"];
 
 function LaporanPage() {
-  const totalPendapatan = pendapatanUnit.reduce((a, b) => a + b.nilai, 0);
-  const totalBiaya = bebanOperasional.reduce((a, b) => a + b.nilai, 0);
-  const laba = totalPendapatan - totalBiaya;
-  const margin = ((laba / totalPendapatan) * 100).toFixed(1);
-
-  const chartData = marginBulanan.map((m) => ({
-    bulan: m.bulan,
-    Pendapatan: m.pendapatan / 1_000_000,
-    Biaya: m.biaya / 1_000_000,
-    Laba: (m.pendapatan - m.biaya) / 1_000_000,
-  }));
+  const kasQuery = useKasHarianRows();
+  const kasHarian = kasQuery.data ?? [];
+  const ringkas = useMemo(() => ringkasKasHarian(kasHarian), [kasHarian]);
+  const { totalPendapatan, totalBiaya, laba, chartData, bebanOperasional } = ringkas;
+  const margin = ringkas.margin.toFixed(1);
+  const pendapatanUnit = ringkas.pendapatanUnit;
+  const pieData = pendapatanUnit.length > 0 ? pendapatanUnit : [{ unit: "Belum ada data", nilai: 1 }];
 
   return (
     <div className="space-y-6">
@@ -61,17 +61,25 @@ function LaporanPage() {
         description="Periode Agustus 2026 · Harga jual vs biaya operasional"
         actions={
           <>
-            <Badge variant="secondary" className="hidden sm:inline-flex">Belum diaudit</Badge>
+            <Badge variant={kasQuery.isFetching ? "outline" : "secondary"} className="hidden sm:inline-flex">
+              {kasQuery.isFetching ? "Memuat Kas_Harian" : "Live Supabase"}
+            </Badge>
             <Button size="sm" variant="outline">Ekspor Excel</Button>
           </>
         }
       />
 
+      {kasQuery.isError ? (
+        <p className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          Gagal memuat data Kas_Harian dari Supabase workbook_rows.
+        </p>
+      ) : null}
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total Pendapatan" value={rupiah(totalPendapatan)} sub="4 unit usaha" icon={<ArrowUpRight className="size-4" />} tone="primary" />
-        <StatCard label="Biaya Operasional" value={rupiah(totalBiaya)} sub="6 pos biaya" icon={<ArrowDownRight className="size-4" />} tone="destructive" />
+        <StatCard label="Total Pendapatan" value={rupiah(totalPendapatan)} sub="CSV Kas_Harian" icon={<ArrowUpRight className="size-4" />} tone="primary" />
+        <StatCard label="Biaya Operasional" value={rupiah(totalBiaya)} sub="CSV Kas_Harian" icon={<ArrowDownRight className="size-4" />} tone="destructive" />
         <StatCard label="Laba Bersih" value={rupiah(laba)} sub="Pendapatan − Biaya" icon={<Wallet className="size-4" />} tone="info" />
-        <StatCard label="Profit Margin" value={`${margin}%`} sub="Target perusahaan 35%" icon={<Percent className="size-4" />} tone="warning" />
+        <StatCard label="Profit Margin" value={`${margin}%`} sub="Dihitung dari ledger CSV" icon={<Percent className="size-4" />} tone="warning" />
       </div>
 
       <section className="rounded-xl border bg-card p-4 shadow-sm">
@@ -107,8 +115,8 @@ function LaporanPage() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={pendapatanUnit} dataKey="nilai" nameKey="unit" innerRadius={55} outerRadius={90} paddingAngle={2}>
-                  {pendapatanUnit.map((_, i) => (
+                <Pie data={pieData} dataKey="nilai" nameKey="unit" innerRadius={55} outerRadius={90} paddingAngle={2}>
+                  {pieData.map((_, i) => (
                     <Cell key={i} fill={warna[i % warna.length]} />
                   ))}
                 </Pie>
@@ -138,7 +146,7 @@ function LaporanPage() {
                   <td className="px-4 py-2.5">{b.pos}</td>
                   <td className="px-4 py-2.5 text-right tabular-nums">{rupiah(b.nilai)}</td>
                   <td className="w-20 px-4 py-2.5 text-right text-xs tabular-nums text-muted-foreground">
-                    {((b.nilai / totalBiaya) * 100).toFixed(1)}%
+                    {totalBiaya > 0 ? ((b.nilai / totalBiaya) * 100).toFixed(1) : "0.0"}%
                   </td>
                 </tr>
               ))}
@@ -179,6 +187,36 @@ function LaporanPage() {
                 <td className="px-4 py-3">Profit Bersih ({margin}%)</td>
                 <td className="px-4 py-3 text-right tabular-nums">{rupiah(laba)}</td>
               </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="rounded-xl border bg-card shadow-sm">
+        <div className="border-b px-4 py-3">
+          <h2 className="text-sm font-semibold">Kas Harian Workbook</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] text-sm">
+            <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground">
+              <tr>
+                <th className="px-4 py-2 text-left font-medium">Tanggal</th>
+                <th className="px-4 py-2 text-left font-medium">Uraian</th>
+                <th className="px-4 py-2 text-right font-medium">Masuk</th>
+                <th className="px-4 py-2 text-right font-medium">Keluar</th>
+                <th className="px-4 py-2 text-right font-medium">Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {kasHarian.map((row, index) => (
+                <tr key={`${row.tanggal}-${index}`} className="border-t hover:bg-muted/40">
+                  <td className="px-4 py-2 text-muted-foreground">{row.tanggal}</td>
+                  <td className="px-4 py-2 font-medium">{row.uraian}</td>
+                  <td className="px-4 py-2 text-right tabular-nums">{row.masuk ? rupiah(row.masuk) : "-"}</td>
+                  <td className="px-4 py-2 text-right tabular-nums">{row.keluar ? rupiah(row.keluar) : "-"}</td>
+                  <td className="px-4 py-2 text-right tabular-nums">{row.saldo ? rupiah(row.saldo) : "-"}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

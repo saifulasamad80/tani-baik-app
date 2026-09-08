@@ -12,8 +12,15 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KebunRouteImport } from './routes/kebun'
 import { Route as LaporanRouteImport } from './routes/laporan'
+import { Route as LivestockRouteImport } from './routes/livestock'
+import { Route as MarketRouteImport } from './routes/market'
+import { Route as MasukRouteImport } from './routes/masuk'
+import { Route as PengaturanRouteImport } from './routes/pengaturan'
 import { Route as PeternakanRouteImport } from './routes/peternakan'
 import { Route as PosRouteImport } from './routes/pos'
+import { Route as ResourcesRouteImport } from './routes/resources'
+import { Route as WargaRouteImport } from './routes/warga'
+import { Route as WorkbookRouteImport } from './routes/workbook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -30,6 +37,26 @@ const LaporanRoute = LaporanRouteImport.update({
   path: '/laporan',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LivestockRoute = LivestockRouteImport.update({
+  id: '/livestock',
+  path: '/livestock',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketRoute = MarketRouteImport.update({
+  id: '/market',
+  path: '/market',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MasukRoute = MasukRouteImport.update({
+  id: '/masuk',
+  path: '/masuk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PengaturanRoute = PengaturanRouteImport.update({
+  id: '/pengaturan',
+  path: '/pengaturan',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PeternakanRoute = PeternakanRouteImport.update({
   id: '/peternakan',
   path: '/peternakan',
@@ -40,43 +67,123 @@ const PosRoute = PosRouteImport.update({
   path: '/pos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResourcesRoute = ResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WargaRoute = WargaRouteImport.update({
+  id: '/warga',
+  path: '/warga',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkbookRoute = WorkbookRouteImport.update({
+  id: '/workbook',
+  path: '/workbook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/kebun': typeof KebunRoute
   '/laporan': typeof LaporanRoute
+  '/livestock': typeof LivestockRoute
+  '/market': typeof MarketRoute
+  '/masuk': typeof MasukRoute
+  '/pengaturan': typeof PengaturanRoute
   '/peternakan': typeof PeternakanRoute
   '/pos': typeof PosRoute
+  '/resources': typeof ResourcesRoute
+  '/warga': typeof WargaRoute
+  '/workbook': typeof WorkbookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/kebun': typeof KebunRoute
   '/laporan': typeof LaporanRoute
+  '/livestock': typeof LivestockRoute
+  '/market': typeof MarketRoute
+  '/masuk': typeof MasukRoute
+  '/pengaturan': typeof PengaturanRoute
   '/peternakan': typeof PeternakanRoute
   '/pos': typeof PosRoute
+  '/resources': typeof ResourcesRoute
+  '/warga': typeof WargaRoute
+  '/workbook': typeof WorkbookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/kebun': typeof KebunRoute
   '/laporan': typeof LaporanRoute
+  '/livestock': typeof LivestockRoute
+  '/market': typeof MarketRoute
+  '/masuk': typeof MasukRoute
+  '/pengaturan': typeof PengaturanRoute
   '/peternakan': typeof PeternakanRoute
   '/pos': typeof PosRoute
+  '/resources': typeof ResourcesRoute
+  '/warga': typeof WargaRoute
+  '/workbook': typeof WorkbookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/kebun' | '/laporan' | '/peternakan' | '/pos'
+  fullPaths:
+    | '/'
+    | '/kebun'
+    | '/laporan'
+    | '/livestock'
+    | '/market'
+    | '/masuk'
+    | '/pengaturan'
+    | '/peternakan'
+    | '/pos'
+    | '/resources'
+    | '/warga'
+    | '/workbook'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/kebun' | '/laporan' | '/peternakan' | '/pos'
-  id: '__root__' | '/' | '/kebun' | '/laporan' | '/peternakan' | '/pos'
+  to:
+    | '/'
+    | '/kebun'
+    | '/laporan'
+    | '/livestock'
+    | '/market'
+    | '/masuk'
+    | '/pengaturan'
+    | '/peternakan'
+    | '/pos'
+    | '/resources'
+    | '/warga'
+    | '/workbook'
+  id:
+    | '__root__'
+    | '/'
+    | '/kebun'
+    | '/laporan'
+    | '/livestock'
+    | '/market'
+    | '/masuk'
+    | '/pengaturan'
+    | '/peternakan'
+    | '/pos'
+    | '/resources'
+    | '/warga'
+    | '/workbook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   KebunRoute: typeof KebunRoute
   LaporanRoute: typeof LaporanRoute
+  LivestockRoute: typeof LivestockRoute
+  MarketRoute: typeof MarketRoute
+  MasukRoute: typeof MasukRoute
+  PengaturanRoute: typeof PengaturanRoute
   PeternakanRoute: typeof PeternakanRoute
   PosRoute: typeof PosRoute
+  ResourcesRoute: typeof ResourcesRoute
+  WargaRoute: typeof WargaRoute
+  WorkbookRoute: typeof WorkbookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -102,6 +209,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LaporanRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/livestock': {
+      id: '/livestock'
+      path: '/livestock'
+      fullPath: '/livestock'
+      preLoaderRoute: typeof LivestockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/market': {
+      id: '/market'
+      path: '/market'
+      fullPath: '/market'
+      preLoaderRoute: typeof MarketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/masuk': {
+      id: '/masuk'
+      path: '/masuk'
+      fullPath: '/masuk'
+      preLoaderRoute: typeof MasukRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pengaturan': {
+      id: '/pengaturan'
+      path: '/pengaturan'
+      fullPath: '/pengaturan'
+      preLoaderRoute: typeof PengaturanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/peternakan': {
       id: '/peternakan'
       path: '/peternakan'
@@ -116,6 +251,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/resources': {
+      id: '/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof ResourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/warga': {
+      id: '/warga'
+      path: '/warga'
+      fullPath: '/warga'
+      preLoaderRoute: typeof WargaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workbook': {
+      id: '/workbook'
+      path: '/workbook'
+      fullPath: '/workbook'
+      preLoaderRoute: typeof WorkbookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -123,8 +279,15 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   KebunRoute: KebunRoute,
   LaporanRoute: LaporanRoute,
+  LivestockRoute: LivestockRoute,
+  MarketRoute: MarketRoute,
+  MasukRoute: MasukRoute,
+  PengaturanRoute: PengaturanRoute,
   PeternakanRoute: PeternakanRoute,
   PosRoute: PosRoute,
+  ResourcesRoute: ResourcesRoute,
+  WargaRoute: WargaRoute,
+  WorkbookRoute: WorkbookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

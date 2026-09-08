@@ -3,7 +3,9 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
+  redirect,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -12,11 +14,23 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { BRAND_DESCRIPTION, BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
 import { AppSidebar } from "@/components/app-sidebar";
+import { AuthProvider } from "@/components/auth-provider";
+import { ConnectionStatus } from "@/components/connection-status";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
+import { ModuleMenu } from "@/components/module-menu";
+import { OfflineBanner } from "@/components/offline-banner";
+import { QuickAdd } from "@/components/quick-add";
+import { UserMenu } from "@/components/user-menu";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useKoneksi } from "@/hooks/use-koneksi";
+import { ensureSessionSnapshot, getSessionSnapshot } from "@/lib/auth-session";
+import { startSyncEngine } from "@/lib/sync-engine";
+import { daftarServiceWorker } from "@/lib/pwa/register-sw";
 
 function NotFoundComponent() {
   return (
@@ -77,17 +91,34 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  beforeLoad: async ({ location }) => {
+    const pathname = location.pathname;
+    const publicRoutes = pathname === "/masuk";
+    if (publicRoutes) return;
+
+    const snapshot = getSessionSnapshot();
+    if (snapshot === undefined) {
+      const session = await ensureSessionSnapshot();
+      if (session) return;
+    } else if (snapshot) {
+      return;
+    }
+
+    throw redirect({
+      to: "/masuk",
+      replace: true,
+    });
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Tani Baik — Integrated Farming & POS" },
-      {
-        name: "description",
-        content: "Sistem manajemen pertanian terpadu dan kasir UMKM Benih Tani Baik.",
-      },
+      { title: `${BRAND_NAME} — ${BRAND_TAGLINE}` },
+      { name: "description", content: BRAND_DESCRIPTION },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "theme-color", content: "#2f9d7a" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -97,7 +128,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/icons/icon-192.png", type: "image/png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icons/icon-192.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -122,41 +155,58 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const { daring, antrean } = useKoneksi();
+  const halamanMasuk = pathname === "/masuk";
+
+  useEffect(() => {
+    daftarServiceWorker();
+    startSyncEngine();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-background">
-          <AppSidebar />
-          <div className="flex min-w-0 flex-1 flex-col">
-            <header className="sticky top-0 z-20 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b bg-card/80 px-3 py-2.5 backdrop-blur sm:px-5">
-              <SidebarTrigger />
-              <div className="relative min-w-0 max-w-sm">
-                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Cari menu, produk, blok..." className="h-9 pl-9" />
+      <AuthProvider>
+        {halamanMasuk ? (
+          <>
+            <Outlet />
+            <Toaster />
+          </>
+        ) : (
+          <SidebarProvider>
+            <div className="flex min-h-screen w-full bg-background">
+              <AppSidebar />
+              <div className="flex min-w-0 flex-1 flex-col">
+                <header className="sticky top-0 z-20 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b bg-card/80 px-3 py-2.5 backdrop-blur sm:px-5">
+                  <SidebarTrigger />
+                  <div className="relative min-w-0 max-w-sm">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input placeholder="Cari menu, produk, blok..." className="h-9 pl-9" />
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <ModuleMenu />
+                    <QuickAdd daring={daring} />
+                    <ConnectionStatus daring={daring} antrean={antrean} />
+                    <Button variant="ghost" size="icon" aria-label="Notifikasi">
+                      <Bell className="size-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" aria-label="Bantuan">
+                      <CircleHelp className="size-4" />
+                    </Button>
+                    <UserMenu />
+                  </div>
+                </header>
+                <OfflineBanner tampil={!daring} antrean={antrean} />
+                <main className="min-w-0 flex-1 p-4 pb-20 sm:p-6 md:pb-6">
+                  <Outlet />
+                </main>
               </div>
-              <div className="flex shrink-0 items-center gap-1.5">
-                <Button variant="ghost" size="icon" aria-label="Notifikasi">
-                  <Bell className="size-4" />
-                </Button>
-                <Button variant="ghost" size="icon" aria-label="Bantuan">
-                  <CircleHelp className="size-4" />
-                </Button>
-                <div className="ml-1 hidden items-center gap-2 rounded-full border py-1 pl-1 pr-3 sm:flex">
-                  <span className="grid size-7 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                    SS
-                  </span>
-                  <span className="text-xs font-medium">Saiful · Admin</span>
-                </div>
-              </div>
-            </header>
-            <main className="min-w-0 flex-1 p-4 sm:p-6">
-              <Outlet />
-            </main>
-          </div>
-        </div>
-        <Toaster />
-      </SidebarProvider>
+            </div>
+            <MobileTabBar />
+            <Toaster />
+          </SidebarProvider>
+        )}
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

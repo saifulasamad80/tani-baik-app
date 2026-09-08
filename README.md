@@ -1,6 +1,6 @@
-# Tani Baik Dashboard
+# FarmaHub Dashboard
 
-"Gunakan gambar terlampir sebagai referensi dasar untuk UI/UX-nya. Buatkan saya prototype web app 'Tani Baik' (Sistem Manajemen Integrated Farming & POS UMKM).
+"Gunakan gambar terlampir sebagai referensi dasar untuk UI/UX-nya. Buatkan saya prototype web app 'FarmaHub' (Sistem Manajemen Integrated Farming & POS UMKM).
 
 Gunakan gaya SaaS modern, warna dominan Emerald dan Slate, layout responsif, data-dense, dengan sidebar navigasi.
 

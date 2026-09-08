@@ -1,6 +1,21 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Trees, Beef, ShoppingCart, Wallet, Sprout } from "lucide-react";
+import {
+  LayoutDashboard,
+  Milk,
+  Trees,
+  Beef,
+  Boxes,
+  Database,
+  ShoppingCart,
+  Wallet,
+  Sprout,
+  Users,
+  Settings,
+  Store,
+} from "lucide-react";
 
+import { useAuth } from "@/components/auth-provider";
+import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
 import {
   Sidebar,
   SidebarContent,
@@ -14,19 +29,50 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { bolehAkses, type Peran } from "@/lib/roles";
 
-const items = [
+const items: {
+  title: string;
+  url:
+    | "/"
+    | "/livestock"
+    | "/kebun"
+    | "/peternakan"
+    | "/resources"
+    | "/market"
+    | "/workbook"
+    | "/pos"
+    | "/laporan"
+    | "/warga"
+    | "/pengaturan";
+  icon: typeof LayoutDashboard;
+  peran?: readonly Peran[];
+}[] = [
   { title: "Dashboard Utama", url: "/", icon: LayoutDashboard },
+  { title: "Livestock", url: "/livestock", icon: Milk },
   { title: "Manajemen Kebun", url: "/kebun", icon: Trees },
   { title: "Manajemen Peternakan", url: "/peternakan", icon: Beef },
+  { title: "Sumber Daya", url: "/resources", icon: Boxes },
+  { title: "Market", url: "/market", icon: Store },
+  { title: "Workbook", url: "/workbook", icon: Database },
   { title: "POS / Kasir UMKM", url: "/pos", icon: ShoppingCart },
   { title: "Laporan Keuangan", url: "/laporan", icon: Wallet },
-] as const;
+  { title: "Warga & Investor", url: "/warga", icon: Users, peran: ["admin", "pengelola"] },
+  { title: "Pengaturan", url: "/pengaturan", icon: Settings, peran: ["admin", "pengelola"] },
+];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const { profil, session } = useAuth();
+  const peran = profil?.peran ?? null;
+
+  const visible = items.filter((item) => {
+    if (!item.peran) return true;
+    if (!session) return true;
+    return bolehAkses(peran, item.peran);
+  });
 
   return (
     <Sidebar collapsible="icon">
@@ -37,10 +83,8 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-sidebar-foreground">Tani Baik</p>
-              <p className="truncate text-[11px] text-sidebar-foreground/60">
-                Integrated Farming &amp; POS
-              </p>
+              <p className="truncate text-sm font-bold text-sidebar-foreground">{BRAND_NAME}</p>
+              <p className="truncate text-[11px] text-sidebar-foreground/60">{BRAND_TAGLINE}</p>
             </div>
           )}
         </div>
@@ -51,7 +95,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Modul Operasional</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {visible.map((item) => (
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title}>
                     <Link to={item.url} className="flex items-center gap-2">
@@ -69,7 +113,7 @@ export function AppSidebar() {
       <SidebarFooter className="border-t border-sidebar-border">
         {!collapsed && (
           <p className="px-2 py-1 text-[11px] leading-relaxed text-sidebar-foreground/55">
-            UMKM Benih Tani Baik · Mode Prototipe (data dummy)
+            {BRAND_NAME} · Sprint 0 (PWA + Auth)
           </p>
         )}
       </SidebarFooter>

@@ -4,6 +4,7 @@ import { Droplets, Leaf, Plus, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader, StatCard } from "@/components/page-header";
+import { BRAND_NAME } from "@/lib/brand";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,23 +18,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  ONGKOS_PEMETIK_PER_KG,
   angka,
   blokKebun,
   riwayatPanen,
   rupiah,
-} from "@/lib/dummy-data";
+} from "@/lib/farm-data";
+import { PARAMETER_BAKU } from "@/lib/parameters";
+import { useParameterSistem } from "@/hooks/use-parameter-sistem";
 
 export const Route = createFileRoute("/kebun")({
   head: () => ({
     meta: [
-      { title: "Manajemen Kebun — Tani Baik" },
+      { title: `Manajemen Kebun — ${BRAND_NAME}` },
       {
         name: "description",
         content:
           "Monitor Blok 1-3 manggis, jambu kristal, dan sayur beserta input hasil panen serta ongkos pemetik.",
       },
-      { property: "og:title", content: "Manajemen Kebun — Tani Baik" },
+      { property: "og:title", content: `Manajemen Kebun — ${BRAND_NAME}` },
       {
         property: "og:description",
         content: "Monitoring blok kebun dan kalkulasi ongkos pemetik Rp 2.000/kg.",
@@ -44,6 +46,8 @@ export const Route = createFileRoute("/kebun")({
 });
 
 function KebunPage() {
+  const { data: params } = useParameterSistem();
+  const ongkosPerKg = params?.ongkos_pemetik_per_kg ?? PARAMETER_BAKU.ongkos_pemetik_per_kg;
   const [blok, setBlok] = useState("BLK-01");
   const [komoditas, setKomoditas] = useState("Manggis");
   const [kg, setKg] = useState("");
@@ -51,7 +55,7 @@ function KebunPage() {
   const [riwayat, setRiwayat] = useState(riwayatPanen);
 
   const berat = Number(kg) || 0;
-  const ongkos = berat * ONGKOS_PEMETIK_PER_KG;
+  const ongkos = berat * ongkosPerKg;
   const perOrang = Number(pemetik) > 0 ? ongkos / Number(pemetik) : 0;
 
   const totalRealisasi = useMemo(
@@ -86,13 +90,13 @@ function KebunPage() {
         eyebrow="Unit Kebun"
         title="Manajemen Kebun"
         description="Monitoring Blok 1–3 dan pencatatan hasil panen harian"
-        actions={<Badge variant="secondary">Ongkos pemetik Rp 2.000 / Kg</Badge>}
+        actions={<Badge variant="secondary">Ongkos pemetik {rupiah(ongkosPerKg)} / Kg</Badge>}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Total Blok Aktif" value="3 Blok" sub="4,8 Ha lahan produktif" icon={<Leaf className="size-4" />} tone="primary" />
         <StatCard label="Realisasi Panen" value={`${angka(totalRealisasi)} Kg`} sub={`Target ${angka(totalTarget)} Kg`} icon={<Leaf className="size-4" />} />
-        <StatCard label="Ongkos Pemetik Bulan Ini" value={rupiah(totalRealisasi * ONGKOS_PEMETIK_PER_KG)} sub="Dihitung otomatis dari berat panen" icon={<Users className="size-4" />} tone="warning" />
+        <StatCard label="Ongkos Pemetik Bulan Ini" value={rupiah(totalRealisasi * ongkosPerKg)} sub="Dihitung otomatis dari berat panen" icon={<Users className="size-4" />} tone="warning" />
         <StatCard label="Rata-rata Kelembaban" value="72,6%" sub="Sensor tanah 3 blok" icon={<Droplets className="size-4" />} tone="info" />
       </div>
 
@@ -137,7 +141,7 @@ function KebunPage() {
                 <div className="col-span-2 rounded-lg bg-muted/60 p-2">
                   <dt className="text-muted-foreground">Ongkos pemetik</dt>
                   <dd className="font-semibold tabular-nums">
-                    {rupiah(b.realisasiKg * ONGKOS_PEMETIK_PER_KG)} · Mandor {b.mandor}
+                    {rupiah(b.realisasiKg * ongkosPerKg)} · Mandor {b.mandor}
                   </dd>
                 </div>
               </dl>
@@ -150,7 +154,7 @@ function KebunPage() {
         <section className="rounded-xl border bg-card p-4 shadow-sm">
           <h2 className="text-sm font-semibold">Input Hasil Panen</h2>
           <p className="mb-4 text-xs text-muted-foreground">
-            Ongkos pemetik dihitung otomatis Rp 2.000 per Kg.
+            Ongkos pemetik dihitung otomatis {rupiah(ongkosPerKg)} per Kg. Terpisah dari tarif rawat.
           </p>
           <div className="space-y-3">
             <div className="space-y-1.5">
@@ -232,7 +236,7 @@ function KebunPage() {
                     <td className="px-4 py-2 text-right tabular-nums">{angka(r.kg)}</td>
                     <td className="px-4 py-2 text-right tabular-nums">{r.pemetik} org</td>
                     <td className="px-4 py-2 text-right tabular-nums font-medium">
-                      {rupiah(r.kg * ONGKOS_PEMETIK_PER_KG)}
+                      {rupiah(r.kg * ongkosPerKg)}
                     </td>
                   </tr>
                 ))}

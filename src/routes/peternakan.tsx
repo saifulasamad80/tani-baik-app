@@ -4,6 +4,7 @@ import { Beef, Egg, Fish, PackagePlus, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader, StatCard } from "@/components/page-header";
+import { BRAND_NAME } from "@/lib/brand";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,21 +18,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { angka, rupiah, stokPakan, stokTernak } from "@/lib/dummy-data";
+import { angka, rupiah, stokPakan, stokTernak } from "@/lib/farm-data";
 
 export const Route = createFileRoute("/peternakan")({
   head: () => ({
     meta: [
-      { title: "Manajemen Peternakan — Tani Baik" },
+      { title: `Manajemen Peternakan — ${BRAND_NAME}` },
       {
         name: "description",
         content:
           "Monitor populasi sapi, ayam, dan ikan serta kelola stok dan pembelian pakan ternak.",
       },
-      { property: "og:title", content: "Manajemen Peternakan — Tani Baik" },
+      { property: "og:title", content: `Manajemen Peternakan — ${BRAND_NAME}` },
       {
         property: "og:description",
-        content: "Stok hewan ternak dan modul manajemen pembelian pakan Tani Baik.",
+        content: `Stok hewan ternak dan modul manajemen pembelian pakan ${BRAND_NAME}.`,
       },
     ],
   }),
@@ -59,6 +60,15 @@ function PeternakanPage() {
   };
 
   const totalPakanHarian = stokTernak.reduce((a, b) => a + b.pakanHarianKg, 0);
+  const totalKambing = stokTernak
+    .filter((t) => t.jenis === "Kambing" || t.jenis === "Domba/Gibas")
+    .reduce((a, b) => a + b.populasi, 0);
+  const totalAyam = stokTernak
+    .filter((t) => t.jenis.startsWith("Ayam"))
+    .reduce((a, b) => a + b.populasi, 0);
+  const totalIkan = stokTernak
+    .filter((t) => t.jenis.startsWith("Ikan"))
+    .reduce((a, b) => a + b.populasi, 0);
 
   return (
     <div className="space-y-6">
@@ -70,10 +80,33 @@ function PeternakanPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Sapi" value="24 Ekor" sub="Kandang A · rata-rata 420 kg" icon={<Beef className="size-4" />} tone="warning" />
-        <StatCard label="Ayam" value={`${angka(2790)} Ekor`} sub="Broiler 1.850 · Petelur 940" icon={<Egg className="size-4" />} tone="primary" />
-        <StatCard label="Ikan" value={`${angka(10500)} Ekor`} sub="Nila 6.200 · Lele 4.300" icon={<Fish className="size-4" />} tone="info" />
-        <StatCard label="Kebutuhan Pakan Harian" value={`${angka(totalPakanHarian)} Kg`} sub="Seluruh unit ternak & kolam" icon={<PackagePlus className="size-4" />} />
+        <StatCard
+          label="Kambing"
+          value={`${angka(totalKambing)} Ekor`}
+          sub="Workbook persediaan"
+          icon={<Beef className="size-4" />}
+          tone="warning"
+        />
+        <StatCard
+          label="Ayam"
+          value={`${angka(totalAyam)} Ekor`}
+          sub="Petelur + pedaging"
+          icon={<Egg className="size-4" />}
+          tone="primary"
+        />
+        <StatCard
+          label="Ikan"
+          value={`${angka(totalIkan)} Ekor`}
+          sub="Mujair, gurame, lele"
+          icon={<Fish className="size-4" />}
+          tone="info"
+        />
+        <StatCard
+          label="Kebutuhan Pakan Harian"
+          value={`${angka(totalPakanHarian)} Kg`}
+          sub="Seluruh unit ternak & kolam"
+          icon={<PackagePlus className="size-4" />}
+        />
       </div>
 
       <section className="rounded-xl border bg-card shadow-sm">
@@ -126,11 +159,11 @@ function PeternakanPage() {
             Indikator merah menandakan stok di bawah batas minimum.
           </p>
           <div className="space-y-4">
-            {stokPakan.map((p) => {
+            {stokPakan.map((p, index) => {
               const pct = Math.min(100, Math.round((p.stok / (p.minimum * 3)) * 100));
               const kritis = p.stok < p.minimum;
               return (
-                <div key={p.nama} className="rounded-lg border p-3">
+                <div key={`${p.nama}-${index}`} className="rounded-lg border p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{p.nama}</p>
@@ -163,8 +196,8 @@ function PeternakanPage() {
               <Select value={pakan} onValueChange={setPakan}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {stokPakan.map((p) => (
-                    <SelectItem key={p.nama} value={p.nama}>{p.nama}</SelectItem>
+                  {stokPakan.map((p, index) => (
+                    <SelectItem key={`${p.nama}-${index}`} value={p.nama}>{p.nama}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

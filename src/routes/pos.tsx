@@ -14,22 +14,23 @@ import {
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/page-header";
+import { BRAND_NAME } from "@/lib/brand";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { angka, penerimaanBarang, produkPos, rupiah, stokOpname } from "@/lib/dummy-data";
+import { angka, penerimaanBarang, produkPos, rupiah, stokOpname } from "@/lib/farm-data";
 
 export const Route = createFileRoute("/pos")({
   head: () => ({
     meta: [
-      { title: "POS / Kasir UMKM — Tani Baik" },
+      { title: `POS / Kasir UMKM — ${BRAND_NAME}` },
       {
         name: "description",
         content:
-          "Kasir UMKM Benih Tani Baik: transaksi penjualan, penerimaan barang, manajemen produk, dan stok opname.",
+          `Kasir UMKM ${BRAND_NAME}: transaksi penjualan, penerimaan barang, manajemen produk, dan stok opname.`,
       },
-      { property: "og:title", content: "POS / Kasir UMKM — Tani Baik" },
+      { property: "og:title", content: `POS / Kasir UMKM — ${BRAND_NAME}` },
       {
         property: "og:description",
         content: "Modul kasir offline UMKM: penjualan, penerimaan barang, produk, stok opname.",
@@ -98,7 +99,7 @@ function PosPage() {
           <div className="mx-auto grid size-16 place-items-center rounded-full bg-primary-foreground/15 text-2xl font-bold">
             TB
           </div>
-          <h1 className="mt-3 text-2xl font-extrabold tracking-tight">UMKM Benih Tani Baik</h1>
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight">{BRAND_NAME}</h1>
           <p className="mt-1 text-xs text-primary-foreground/80">
             Support by. Kasir Toko — Solusi Kasir offline UMKM
           </p>
