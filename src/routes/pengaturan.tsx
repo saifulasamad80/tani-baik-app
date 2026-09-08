@@ -143,7 +143,7 @@ function HalamanPengaturan() {
       setAkunPeran("pengelola");
       await queryClient.invalidateQueries({ queryKey: ["akun-pengguna"] });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Gagal membuat akun");
+      toast.error(ambilPesanError(err, "Gagal membuat akun"));
     } finally {
       setMembuatAkun(false);
     }
@@ -281,7 +281,7 @@ function HalamanPengaturan() {
 
           {akunQuery.isError ? (
             <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              Gagal memuat daftar akun.
+              {ambilPesanError(akunQuery.error, "Gagal memuat daftar akun.")}
             </p>
           ) : null}
 
@@ -331,4 +331,30 @@ function HalamanPengaturan() {
       )}
     </div>
   );
+}
+
+function ambilPesanError(error: unknown, fallback: string): string {
+  const pesan = cariPesanError(error);
+  return pesan?.trim() ? pesan : fallback;
+}
+
+function cariPesanError(error: unknown, kedalaman = 0): string | undefined {
+  if (kedalaman > 3 || error == null) return undefined;
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  if (typeof error !== "object") return undefined;
+
+  const kandidat = error as {
+    message?: unknown;
+    error?: unknown;
+    cause?: unknown;
+    data?: unknown;
+  };
+
+  if (typeof kandidat.message === "string") return kandidat.message;
+  const dariData = cariPesanError(kandidat.data, kedalaman + 1);
+  if (dariData) return dariData;
+  const dariCause = cariPesanError(kandidat.cause, kedalaman + 1);
+  if (dariCause) return dariCause;
+  return cariPesanError(kandidat.error, kedalaman + 1);
 }
