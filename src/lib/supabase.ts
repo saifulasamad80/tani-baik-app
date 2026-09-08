@@ -6,7 +6,7 @@ const { url: supabaseUrl, anonKey: supabaseAnonKey } = getSupabaseEnv();
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(
-    "Kritis: Variabel VITE_SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL atau VITE_SUPABASE_ANON_KEY/NEXT_PUBLIC_SUPABASE_ANON_KEY tidak ditemukan. Pastikan file .env.local sudah dibuat.",
+    "Kritis: Variabel SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL/VITE_SUPABASE_URL atau SUPABASE_ANON_KEY/NEXT_PUBLIC_SUPABASE_ANON_KEY/VITE_SUPABASE_ANON_KEY tidak ditemukan. Pastikan env Vercel dan .env.local sudah cocok.",
   );
 }
 
