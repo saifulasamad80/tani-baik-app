@@ -117,7 +117,7 @@ function HalamanWarga() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Master investor"
-        title="Warga RT07"
+        title="Warga & Investor"
         description="Impor buku lama warga sebagai calon investor. NIK tidak ditampilkan dan tidak disimpan dari klien."
       />
 
