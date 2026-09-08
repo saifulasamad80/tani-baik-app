@@ -34,16 +34,17 @@ async function buatAdminClient() {
 
 async function pastikanAdmin(accessToken: string) {
   const supabaseAdmin = await buatAdminClient();
-  const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(accessToken);
+  const { data: claimsData, error: claimsError } = await supabaseAdmin.auth.getClaims(accessToken);
 
-  if (userError || !userData.user) {
+  if (claimsError || !claimsData?.claims?.sub) {
     throw new Error("Sesi tidak valid. Silakan masuk ulang.");
   }
 
+  const userId = claimsData.claims.sub;
   const { data: profil, error: profilError } = await supabaseAdmin
     .from("profil")
     .select("peran")
-    .eq("id", userData.user.id)
+    .eq("id", userId)
     .maybeSingle();
 
   if (profilError) {
