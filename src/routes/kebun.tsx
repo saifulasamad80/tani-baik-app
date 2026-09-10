@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Droplets, Leaf, Plus, Users } from "lucide-react";
+import { Boxes, CheckCircle2, Droplets, FileCheck2, Leaf, Plus, Send, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader, StatCard } from "@/components/page-header";
@@ -17,12 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  angka,
-  blokKebun,
-  riwayatPanen,
-  rupiah,
-} from "@/lib/farm-data";
+import { angka, blokKebun, riwayatPanen, rupiah } from "@/lib/farm-data";
 import { PARAMETER_BAKU } from "@/lib/parameters";
 import { useParameterSistem } from "@/hooks/use-parameter-sistem";
 
@@ -52,16 +47,27 @@ function KebunPage() {
   const [komoditas, setKomoditas] = useState("Manggis");
   const [kg, setKg] = useState("");
   const [pemetik, setPemetik] = useState("3");
-  const [riwayat, setRiwayat] = useState(riwayatPanen);
+  const [riwayat, setRiwayat] = useState<
+    Array<{
+      tanggal: string;
+      blok: string;
+      komoditas: string;
+      kg: number;
+      grade: string;
+      pemetik: number;
+    }>
+  >(riwayatPanen);
+  const [sumberLahan, setSumberLahan] = useState("Lahan sendiri");
+  const [hargaTonase, setHargaTonase] = useState("3500");
+  const [grade, setGrade] = useState("Kelas 1");
+  const [pasar, setPasar] = useState("Ekspor");
 
   const berat = Number(kg) || 0;
   const ongkos = berat * ongkosPerKg;
   const perOrang = Number(pemetik) > 0 ? ongkos / Number(pemetik) : 0;
+  const biayaLuar = berat * (ongkosPerKg + (Number(hargaTonase) || 0));
 
-  const totalRealisasi = useMemo(
-    () => blokKebun.reduce((a, b) => a + b.realisasiKg, 0),
-    [],
-  );
+  const totalRealisasi = useMemo(() => blokKebun.reduce((a, b) => a + b.realisasiKg, 0), []);
   const totalTarget = blokKebun.reduce((a, b) => a + b.targetKg, 0);
 
   const simpan = () => {
@@ -89,15 +95,38 @@ function KebunPage() {
       <PageHeader
         eyebrow="Unit Kebun"
         title="Manajemen Kebun"
-        description="Monitoring Blok 1–3 dan pencatatan hasil panen harian"
-        actions={<Badge variant="secondary">Ongkos pemetik {rupiah(ongkosPerKg)} / Kg</Badge>}
+        description="Monitoring panen, rantai pasok manggis, penyortiran, dan pasar"
+        actions={<Badge variant="secondary">Manggis · 5 kelas grading</Badge>}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total Blok Aktif" value="3 Blok" sub="4,8 Ha lahan produktif" icon={<Leaf className="size-4" />} tone="primary" />
-        <StatCard label="Realisasi Panen" value={`${angka(totalRealisasi)} Kg`} sub={`Target ${angka(totalTarget)} Kg`} icon={<Leaf className="size-4" />} />
-        <StatCard label="Ongkos Pemetik Bulan Ini" value={rupiah(totalRealisasi * ongkosPerKg)} sub="Dihitung otomatis dari berat panen" icon={<Users className="size-4" />} tone="warning" />
-        <StatCard label="Rata-rata Kelembaban" value="72,6%" sub="Sensor tanah 3 blok" icon={<Droplets className="size-4" />} tone="info" />
+        <StatCard
+          label="Total Blok Aktif"
+          value="3 Blok"
+          sub="4,8 Ha lahan produktif"
+          icon={<Leaf className="size-4" />}
+          tone="primary"
+        />
+        <StatCard
+          label="Realisasi Panen"
+          value={`${angka(totalRealisasi)} Kg`}
+          sub={`Target ${angka(totalTarget)} Kg`}
+          icon={<Leaf className="size-4" />}
+        />
+        <StatCard
+          label="Ongkos Pemetik Bulan Ini"
+          value={rupiah(totalRealisasi * ongkosPerKg)}
+          sub="Dihitung otomatis dari berat panen"
+          icon={<Users className="size-4" />}
+          tone="warning"
+        />
+        <StatCard
+          label="Rata-rata Kelembaban"
+          value="72,6%"
+          sub="Sensor tanah 3 blok"
+          icon={<Droplets className="size-4" />}
+          tone="info"
+        />
       </div>
 
       <section className="grid gap-4 lg:grid-cols-3">
@@ -110,12 +139,17 @@ function KebunPage() {
                   <p className="text-xs text-muted-foreground">{b.id}</p>
                   <h3 className="truncate text-sm font-semibold">{b.nama}</h3>
                   <p className="text-xs text-muted-foreground">
-                    {b.komoditas} · {b.luas} · {b.pohon > 0 ? `${angka(b.pohon)} pohon` : "bedengan"}
+                    {b.komoditas} · {b.luas} ·{" "}
+                    {b.pohon > 0 ? `${angka(b.pohon)} pohon` : "bedengan"}
                   </p>
                 </div>
                 <Badge
                   variant={
-                    b.status === "Panen" ? "default" : b.status === "Perawatan" ? "secondary" : "outline"
+                    b.status === "Panen"
+                      ? "default"
+                      : b.status === "Perawatan"
+                        ? "secondary"
+                        : "outline"
                   }
                   className="shrink-0"
                 >
@@ -154,16 +188,21 @@ function KebunPage() {
         <section className="rounded-xl border bg-card p-4 shadow-sm">
           <h2 className="text-sm font-semibold">Input Hasil Panen</h2>
           <p className="mb-4 text-xs text-muted-foreground">
-            Ongkos pemetik dihitung otomatis {rupiah(ongkosPerKg)} per Kg. Terpisah dari tarif rawat.
+            Ongkos pemetik dihitung otomatis {rupiah(ongkosPerKg)} per Kg. Terpisah dari tarif
+            rawat.
           </p>
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label>Blok</Label>
               <Select value={blok} onValueChange={setBlok}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {blokKebun.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>{b.nama}</SelectItem>
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.nama}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -171,24 +210,68 @@ function KebunPage() {
             <div className="space-y-1.5">
               <Label>Komoditas</Label>
               <Select value={komoditas} onValueChange={setKomoditas}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {["Manggis", "Jambu Kristal", "Kangkung", "Bayam", "Cabai Rawit"].map((k) => (
-                    <SelectItem key={k} value={k}>{k}</SelectItem>
+                    <SelectItem key={k} value={k}>
+                      {k}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-1.5">
+              <Label>Sumber lahan</Label>
+              <Select value={sumberLahan} onValueChange={setSumberLahan}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Lahan sendiri">Lahan sendiri</SelectItem>
+                  <SelectItem value="Kelompok tani / masyarakat">
+                    Kelompok tani / masyarakat
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">
+                Keranjang {sumberLahan === "Lahan sendiri" ? "kuning" : "biru"} akan ditempel
+                otomatis.
+              </p>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="kg">Berat (Kg)</Label>
-                <Input id="kg" inputMode="numeric" placeholder="0" value={kg} onChange={(e) => setKg(e.target.value)} />
+                <Input
+                  id="kg"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={kg}
+                  onChange={(e) => setKg(e.target.value)}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="pemetik">Jumlah Pemetik</Label>
-                <Input id="pemetik" inputMode="numeric" value={pemetik} onChange={(e) => setPemetik(e.target.value)} />
+                <Input
+                  id="pemetik"
+                  inputMode="numeric"
+                  value={pemetik}
+                  onChange={(e) => setPemetik(e.target.value)}
+                />
               </div>
             </div>
+            {sumberLahan !== "Lahan sendiri" && (
+              <div className="space-y-1.5">
+                <Label htmlFor="harga-tonase">Harga pembelian berdasarkan tonase (Rp/Kg)</Label>
+                <Input
+                  id="harga-tonase"
+                  type="number"
+                  value={hargaTonase}
+                  onChange={(e) => setHargaTonase(e.target.value)}
+                />
+              </div>
+            )}
 
             <div className="rounded-lg border border-dashed bg-accent/40 p-3 text-sm">
               <div className="flex justify-between">
@@ -197,7 +280,9 @@ function KebunPage() {
               </div>
               <div className="mt-1 flex justify-between">
                 <span className="text-muted-foreground">Ongkos pemetik</span>
-                <span className="font-semibold tabular-nums">{rupiah(ongkos)}</span>
+                <span className="font-semibold tabular-nums">
+                  {rupiah(sumberLahan === "Lahan sendiri" ? ongkos : biayaLuar)}
+                </span>
               </div>
               <div className="mt-1 flex justify-between">
                 <span className="text-muted-foreground">Per orang</span>
@@ -245,6 +330,110 @@ function KebunPage() {
           </div>
         </section>
       </div>
+
+      <section className="rounded-xl border bg-card p-4 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold">Rantai Pasok Manggis</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Pisahkan asal buah sejak pemetikan agar biaya, keranjang, grade, dan pasar mudah
+              diaudit.
+            </p>
+          </div>
+          <Badge variant="outline">
+            <Boxes className="mr-1 size-3" /> Pelacakan keranjang aktif
+          </Badge>
+        </div>
+        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <div className="space-y-3 rounded-lg border p-3">
+            <h3 className="text-sm font-semibold">Penyortiran &amp; Grading</h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Kelas buah</Label>
+                <Select value={grade} onValueChange={setGrade}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5].map((kelas) => (
+                      <SelectItem key={kelas} value={`Kelas ${kelas}`}>
+                        Kelas {kelas} · {kelas === 1 ? "ekspor" : "pasar lokal"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Kanal pasar</Label>
+                <Select value={pasar} onValueChange={setPasar}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Ekspor">Ekspor</SelectItem>
+                    <SelectItem value="Mall / perusahaan lokal">Mall / perusahaan lokal</SelectItem>
+                    <SelectItem value="Pasar lokal">Pasar lokal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-lg bg-muted/60 p-3">
+              <span
+                className={`grid size-9 place-items-center rounded-lg ${sumberLahan === "Lahan sendiri" ? "bg-yellow-300 text-yellow-950" : "bg-blue-500 text-white"}`}
+              >
+                <Boxes className="size-4" />
+              </span>
+              <div>
+                <p className="text-sm font-medium">
+                  Keranjang {sumberLahan === "Lahan sendiri" ? "Kuning" : "Biru"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {sumberLahan === "Lahan sendiri"
+                    ? "Khusus hasil lahan sendiri"
+                    : "Hasil pembelian lahan luar / kelompok tani"}
+                </p>
+              </div>
+            </div>
+            <Button
+              className="w-full"
+              onClick={() =>
+                toast.success(
+                  `${grade} dicatat ke keranjang ${sumberLahan === "Lahan sendiri" ? "kuning" : "biru"} untuk ${pasar}.`,
+                )
+              }
+            >
+              <CheckCircle2 className="size-4" /> Simpan Hasil Sortir
+            </Button>
+          </div>
+          <div className="space-y-3 rounded-lg border p-3">
+            <h3 className="text-sm font-semibold">Kesiapan Pasar</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <span className="flex items-center gap-2">
+                  <FileCheck2 className="size-4 text-primary" />
+                  Dokumen karantina
+                </span>
+                <Badge variant={grade === "Kelas 1" && pasar === "Ekspor" ? "default" : "outline"}>
+                  {grade === "Kelas 1" && pasar === "Ekspor" ? "Disiapkan" : "Tidak wajib"}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <span className="flex items-center gap-2">
+                  <Send className="size-4 text-primary" />
+                  Letter of Credit (LC)
+                </span>
+                <Badge variant={grade === "Kelas 1" && pasar === "Ekspor" ? "default" : "outline"}>
+                  {grade === "Kelas 1" && pasar === "Ekspor" ? "Diperlukan" : "Tidak wajib"}
+                </Badge>
+              </div>
+            </div>
+            <p className="rounded-lg bg-accent/50 p-3 text-xs leading-relaxed">
+              Kelas 1 diarahkan ke ekspor setelah dokumen karantina dan LC lengkap. Kelas 2–5
+              disalurkan ke mall, perusahaan lokal, atau pasar lokal.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
